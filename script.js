@@ -1,115 +1,181 @@
-// --- KHỞI TẠO THREE.JS ---
+import * as THREE from 'three';
+
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), antialias: true });
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas3d'), antialias: true, alpha: true });
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
 
-// --- BIẾN TOÀN CỤC ---
 let particles, photoSphere;
-const totalPhotos = 97; // Theo list assets của bạn
+const particleCount = 60000;
+const totalPhotos = 97;
 
-// --- XỬ LÝ SỰ KIỆN GIỮ NÚT 3 GIÂY ---
-let holdTimer;
-const holdBtn = document.getElementById('hold-button');
-const progressBar = document.getElementById('progress-bar');
-
-function startExperience() {
-    gsap.to("#start-screen", { opacity: 0, duration: 1, onComplete: () => {
-        document.getElementById('start-screen').classList.add('hidden');
-        document.getElementById('bg-music').play();
-        runAnimationTimeline();
-    }});
-}
-
-holdBtn.addEventListener('mousedown', () => {
-    gsap.to(progressBar, { width: '100%', duration: 3, ease: "none", onComplete: startExperience });
-});
-
-holdBtn.addEventListener('mouseup', () => {
-    gsap.killTweensOf(progressBar);
-    gsap.to(progressBar, { width: '0%', duration: 0.2 });
-});
-
-// --- TẠO VŨ TRỤ & CHỮ (Giai đoạn 1 & 2) ---
-function createGalaxy() {
-    const geometry = new THREE.BufferGeometry();
-    const pos = [];
-    for(let i=0; i<10000; i++) {
-        pos.push((Math.random()-0.5)*20, (Math.random()-0.5)*20, (Math.random()-0.5)*20);
+function initParticles() {
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(particleCount * 3);
+    const cols = new Float32Array(particleCount * 3);
+    for(let i=0; i < particleCount; i++) {
+        const i3 = i * 3;
+        pos[i3] = (Math.random() - 0.5) * 200;
+        pos[i3+1] = (Math.random() - 0.5) * 200;
+        pos[i3+2] = (Math.random() - 0.5) * 200;
+        cols[i3] = 0.1; cols[i3+1] = Math.random() * 0.7 + 0.3; cols[i3+2] = 0.1;
     }
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    const material = new THREE.PointsMaterial({ size: 0.05, color: 0xffffff });
-    particles = new THREE.Points(geometry, material);
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+    particles = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.15, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending }));
     scene.add(particles);
 }
 
-// --- TẠO QUẢ CẦU ẢNH (Giai đoạn 4) ---
-function createPhotoSphere() {
-    photoSphere = new THREE.Group();
-    const textureLoader = new THREE.TextureLoader();
+// CHỮ 3 HÀNG - CĂN CHỈNH TỐI ƯU
+function getPointsFromText() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 2000; canvas.height = 1000;
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
     
-    for(let i=1; i<=totalPhotos; i++) {
-        const tex = textureLoader.load(`assets/pic${i}.jpg`);
-        const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
-        const geo = new THREE.PlaneGeometry(1, 1);
-        const mesh = new THREE.Mesh(geo, mat);
-        
-        // Sắp xếp theo hình cầu cơ bản
-        const phi = Math.acos(-1 + (2 * i) / totalPhotos);
-        const theta = Math.sqrt(totalPhotos * Math.PI) * phi;
-        mesh.position.set(
-            5 * Math.cos(theta) * Math.sin(phi),
-            5 * Math.sin(theta) * Math.sin(phi),
-            5 * Math.cos(phi)
-        );
-        mesh.lookAt(0,0,0);
-        photoSphere.add(mesh);
+    ctx.font = 'bold 130px Arial';
+    ctx.fillText("CHÚC MỪNG", 1000, 300);
+    
+    ctx.font = 'bold 110px Arial';
+    ctx.fillText("QUỐC TẾ PHỤ NỮ", 1000, 480);
+    
+    ctx.font = 'bold 120px Arial';
+    ctx.fillText("08/03/2026", 1000, 680);
+    
+    const data = ctx.getImageData(0, 0, 2000, 1000).data;
+    const points = [];
+    for(let y=0; y<1000; y+=2) {
+        for(let x=0; x<2000; x+=2) {
+            if(data[(y * 2000 + x) * 4] > 128) {
+                // Tỉ lệ scale x, y nhỏ lại một chút để chữ không quá bè
+                points.push({ x: (x - 1000) * 0.03, y: (500 - y) * 0.03, z: (Math.random()-0.5)*1 });
+            }
+        }
     }
-    photoSphere.scale.set(0,0,0); // Ẩn lúc đầu
+    return points;
+}
+
+function initPhotoSphere() {
+    photoSphere = new THREE.Group();
+    const loader = new THREE.TextureLoader();
+    const radius = 20; // Trái đất to hơn
+    const maxAni = renderer.capabilities.getMaxAnisotropy();
+
+    for(let i=1; i<=totalPhotos; i++) {
+        loader.load(`assets/pic${i}.jpg`, (tex) => {
+            tex.anisotropy = maxAni;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(7, 9.5), new THREE.MeshBasicMaterial({ map: tex, side: 2 }));
+            const phi = Math.acos(-1 + (2 * i) / totalPhotos);
+            const theta = Math.sqrt(totalPhotos * Math.PI) * phi;
+            mesh.position.set(radius * Math.cos(theta) * Math.sin(phi), radius * Math.sin(theta) * Math.sin(phi), radius * Math.cos(phi));
+            mesh.lookAt(0,0,0);
+            photoSphere.add(mesh);
+        });
+    }
+    photoSphere.scale.set(0,0,0);
     scene.add(photoSphere);
 }
 
-// --- KỊCH BẢN CHÍNH (TIMELINE) ---
-function runAnimationTimeline() {
+function startAnimation() {
     const tl = gsap.timeline();
-    
-    // Giai đoạn 1: Xoay vũ trụ
-    tl.to(particles.rotation, { y: Math.PI * 2, duration: 10 });
-    
-    // Giai đoạn 2 & 3: (Giả lập bằng cách scale các hạt và chuyển cảnh)
-    // Để làm chữ từ hạt cần logic phức tạp hơn, ở mức cơ bản ta sẽ hiện Text 3D hoặc Sprite
-    
-    // Giai đoạn 4: Hiện quả cầu ảnh
-    tl.to(photoSphere.scale, { x: 1, y: 1, z: 1, duration: 2, ease: "back.out" }, "+=2");
-    
-    // Giai đoạn 5: Ảnh bay ra
-    tl.to(photoSphere.children.map(p => p.position), {
-        x: () => (Math.random()-0.5)*20,
-        y: () => (Math.random()-0.5)*20,
-        z: () => (Math.random()-0.5)*20,
-        duration: 3,
-        stagger: 0.01
-    }, "+=3");
-    
-    // Giai đoạn 6: Hiện nút thư
-    tl.call(() => document.getElementById('letter-icon').classList.remove('hidden'));
+    const textTarget = getPointsFromText();
+    const posArr = particles.geometry.attributes.position.array;
+    tl.to({}, { duration: 4, onUpdate: function() {
+        const p = this.progress();
+        for(let i=0; i < textTarget.length; i++) {
+            const i3 = i * 3;
+            if (i3 < posArr.length) {
+                posArr[i3] += (textTarget[i].x - posArr[i3]) * p * 0.22;
+                posArr[i3+1] += (textTarget[i].y - posArr[i3+1]) * p * 0.22;
+                posArr[i3+2] += (textTarget[i].z - posArr[i3+2]) * p * 0.22;
+            }
+        }
+        particles.geometry.attributes.position.needsUpdate = true;
+    }});
+    tl.to({}, { duration: 2, onStart: () => particles.material.color.set(0x81c784), onUpdate: function() {
+        for(let i=0; i<posArr.length; i++) posArr[i] += (Math.random() - 0.5) * 2.5;
+        particles.geometry.attributes.position.needsUpdate = true;
+    }}, "+=2");
+    tl.to(particles.material, { opacity: 0.5, duration: 2 });
+    tl.to(photoSphere.scale, { x: 1, y: 1, z: 1, duration: 2.5, ease: "back.out(1.1)" }, "-=1");
+    tl.to(photoSphere.children.map(m => m.position), {
+        x: (i, t) => t.x * 4.5, y: (i, t) => t.y * 4.5, z: (i, t) => t.z * 4.5,
+        duration: 8, stagger: 0.005, ease: "power2.inOut", onComplete: startHighlightLoop
+    }, "+=2.5");
 }
 
-// Loop render
+function startHighlightLoop() {
+    document.getElementById('letter-icon').classList.remove('hidden');
+    const photos = photoSphere.children;
+    function highlight() {
+        if (photos.length === 0) return;
+        const photo = photos[Math.floor(Math.random() * photos.length)];
+        const oldPos = photo.position.clone();
+        const oldRot = photo.rotation.clone();
+        const htl = gsap.timeline({ onComplete: () => gsap.delayedCall(0.5, highlight) });
+        const isMobile = window.innerWidth < 768;
+        // Phóng to ảnh highlight to hơn trên mobile
+        htl.to(photo.position, { x: 0, y: 0, z: isMobile ? 42 : 45, duration: 1.8, ease: "expo.out" });
+        htl.to(photo.rotation, { x: 0, y: 0, z: 0, duration: 1.5 }, "-=1.8");
+        htl.to(photo.scale, { x: isMobile ? 4.5 : 6, y: isMobile ? 4.5 : 6, duration: 1.8 }, "-=1.8");
+        htl.to({}, { duration: 4 });
+        htl.to(photo.position, { x: oldPos.x, y: oldPos.y, z: oldPos.z, duration: 1.5 });
+        htl.to(photo.rotation, { x: oldRot.x, y: oldRot.y, z: oldRot.z, duration: 1.5 }, "-=1.5");
+        htl.to(photo.scale, { x: 1, y: 1, duration: 1.5 }, "-=1.5");
+    }
+    highlight();
+}
+
+const music = document.getElementById('bg-music');
+const btn = document.getElementById('hold-button');
+let hold;
+
+const primeAudio = () => {
+    music.play().then(() => { music.pause(); }).catch(e => console.log(e));
+};
+
+const handleStart = (e) => {
+    if(e.type === 'touchstart') primeAudio();
+    hold = gsap.to("#progress-bar", { width: "100%", duration: 3, ease: "none", onComplete: () => {
+        document.getElementById('start-screen').style.display = 'none';
+        music.play();
+        startAnimation();
+    }});
+};
+
+const handleEnd = () => { if(hold) hold.kill(); gsap.to("#progress-bar", { width: 0 }); };
+
+btn.addEventListener('mousedown', handleStart);
+btn.addEventListener('touchstart', handleStart, { passive: false });
+btn.addEventListener('mouseup', handleEnd);
+btn.addEventListener('touchend', handleEnd);
+
+function updateCamera() {
+    const isMobile = window.innerWidth < 768;
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    // Đẩy camera ra xa hơn trên di động để thấy hết 3 hàng chữ
+    camera.position.z = isMobile ? 75 : 60; 
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+window.addEventListener('resize', updateCamera);
+
 function animate() {
     requestAnimationFrame(animate);
-    if(particles) particles.rotation.y += 0.001;
-    if(photoSphere) photoSphere.rotation.y += 0.002;
+    if(particles) particles.rotation.y += 0.0007;
+    if(photoSphere) photoSphere.rotation.y += 0.0012;
     renderer.render(scene, camera);
 }
 
-// Khởi chạy
-createGalaxy();
-createPhotoSphere();
-camera.position.z = 15;
+initParticles(); initPhotoSphere();
+updateCamera(); // Gọi lần đầu để set vị trí camera chuẩn
 animate();
 
-// Xử lý mở thư
 document.getElementById('letter-icon').onclick = () => {
     document.getElementById('letter-content').classList.remove('hidden');
     setTimeout(() => document.querySelector('.letter-inner').classList.add('show'), 10);
