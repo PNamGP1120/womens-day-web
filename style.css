@@ -1,137 +1,42 @@
-body,
-html {
-    margin: 0;
-    overflow: hidden;
-    background: #000;
-    font-family: 'Montserrat', sans-serif;
-    -webkit-tap-highlight-color: transparent;
+body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Màn hình khởi động */
 #start-screen {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    background: radial-gradient(circle, #001a00 0%, #000 100%);
+    position: fixed; inset: 0; display: flex; justify-content: center; align-items: center;
+    z-index: 100; flex-direction: column;
 }
 
 #hold-button {
-    color: #fff;
-    border: 2px solid #4CAF50;
-    padding: 18px 35px;
-    border-radius: 50px;
-    cursor: pointer;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 2px;
-    transition: 0.3s;
-    background: rgba(0, 0, 0, 0.3);
+    color: white; border: 2px solid white; padding: 20px 40px;
+    border-radius: 50px; cursor: pointer; user-select: none;
+    transition: transform 0.2s;
 }
 
 #progress-bar {
-    position: absolute;
-    bottom: 40%;
-    width: 0;
-    height: 6px;
-    background: #81C784;
-    border-radius: 10px;
-    box-shadow: 0 0 15px #4caf50;
+    position: absolute; width: 0%; height: 5px; background: #ff4d94;
+    bottom: 40%; left: 50%; transform: translateX(-50%);
 }
 
-/* Nút mở thư bằng LOGO CLB */
+/* Lá thư */
 #letter-icon {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 80px;
-    height: 80px;
-    cursor: pointer;
-    z-index: 50;
-    background-image: url('assets/logo.png');
-    /* Đảm bảo file tên là logo.png trong assets */
-    background-size: contain;
-    background-repeat: no-repeat;
-    filter: drop-shadow(0 0 15px rgba(76, 175, 80, 0.7));
-    transition: transform 0.3s;
-}
-
-#letter-icon:hover {
-    transform: scale(1.1) rotate(5deg);
+    position: fixed; bottom: 30px; right: 30px; font-size: 40px;
+    cursor: pointer; z-index: 50; transition: scale 0.3s;
 }
 
 #letter-content {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    position: fixed; inset: 0; display: flex; justify-content: center; align-items: center;
+    background: rgba(0,0,0,0.7); z-index: 200;
 }
 
 .letter-inner {
-    background: linear-gradient(135deg, #f9fff9 0%, #e8f5e9 100%);
-    padding: 30px;
-    border-radius: 25px;
-    width: 85%;
-    max-width: 550px;
-    position: relative;
-    box-shadow: 0 0 50px rgba(76, 175, 80, 0.5);
-    transform: scale(0);
-    transition: 0.7s cubic-bezier(0.17, 0.89, 0.32, 1.28);
-    text-align: center;
-    border: 6px solid #fff;
+    background: white; padding: 40px; border-radius: 20px;
+    max-width: 80%; text-align: center; position: relative;
+    transform: scale(0); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.letter-inner.show {
-    transform: scale(1);
-}
+.letter-inner.show { transform: scale(1); }
 
-.letter-header {
-    font-family: 'Pacifico', cursive;
-    font-size: 2.2rem;
-    color: #1b5e20;
-    margin-bottom: 15px;
-}
-
-.letter-body {
-    color: #2e7d32;
-    line-height: 1.8;
-    font-size: 1.05rem;
-    text-align: justify;
-}
-
-#close-letter {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    background: none;
-    border: none;
-    font-size: 32px;
-    color: #2e7d32;
-    cursor: pointer;
-}
-
-.hidden {
-    display: none !important;
-}
-
-@media (max-width: 768px) {
-    #letter-icon {
-        width: 65px;
-        height: 65px;
-        bottom: 20px;
-        right: 20px;
-    }
-
-    .letter-header {
-        font-size: 1.8rem;
-    }
-
-    .letter-body {
-        font-size: 0.95rem;
-    }
-}
+.hidden { display: none !important; }
