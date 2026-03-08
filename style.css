@@ -10,18 +10,39 @@ body, html {
     background: radial-gradient(circle, #001a00 0%, #000 100%);
 }
 
+/* Container cho Logo và Vòng tròn */
+#hold-button-container {
+    position: relative; width: 140px; height: 140px;
+    display: flex; justify-content: center; align-items: center;
+}
+
 #hold-button {
-    color: #fff; border: 2px solid #4CAF50; padding: 18px 35px;
-    border-radius: 50px; cursor: pointer; text-transform: uppercase;
-    font-weight: 700; letter-spacing: 2px; transition: 0.3s;
-    background: rgba(0,0,0,0.5); user-select: none;
+    width: 100px; height: 100px;
+    background-image: url('assets/logo.png');
+    background-size: contain; background-repeat: no-repeat; background-position: center;
+    cursor: pointer; z-index: 2; border-radius: 50%;
+    animation: pulse 2s infinite;
 }
 
-#progress-bar {
-    position: absolute; bottom: 40%; width: 0; height: 6px;
-    background: #81C784; border-radius: 10px; box-shadow: 0 0 15px #4caf50;
+@keyframes pulse {
+    0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.4)); }
+    50% { transform: scale(1.08); filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.8)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(76, 175, 80, 0.4)); }
 }
 
+#progress-ring { position: absolute; transform: rotate(-90deg); z-index: 1; }
+#progress-circle {
+    stroke-dasharray: 377; /* 2 * PI * r(60) */
+    stroke-dashoffset: 377;
+    transition: stroke-dashoffset 0.1s linear;
+}
+
+#hold-hint {
+    color: #81C784; margin-top: 25px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; font-size: 0.85rem;
+}
+
+/* Logo mở thư góc màn hình */
 #letter-icon {
     position: fixed; bottom: 30px; right: 30px; 
     width: 80px; height: 80px;
@@ -32,6 +53,7 @@ body, html {
     transition: transform 0.3s;
 }
 
+/* Lá thư */
 #letter-content {
     position: fixed; inset: 0; background: rgba(0,0,0,0.9);
     display: flex; justify-content: center; align-items: center; z-index: 1000;
@@ -39,9 +61,10 @@ body, html {
 
 .letter-inner {
     background: linear-gradient(135deg, #f9fff9 0%, #e8f5e9 100%);
-    padding: 30px; border-radius: 25px; width: 85%; max-width: 500px;
+    padding: 30px; border-radius: 25px; width: 85%; max-width: 550px;
     position: relative; box-shadow: 0 0 50px rgba(76, 175, 80, 0.5);
     transform: scale(0); transition: 0.6s cubic-bezier(0.17, 0.89, 0.32, 1.28);
+    border: 5px solid #fff;
 }
 .letter-inner.show { transform: scale(1); }
 

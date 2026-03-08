@@ -28,30 +28,22 @@ function initParticles() {
     scene.add(particles);
 }
 
-// CHỮ 3 HÀNG - CĂN CHỈNH TỐI ƯU
 function getPointsFromText() {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = 2000; canvas.height = 1000;
     ctx.fillStyle = 'white';
     ctx.textAlign = 'center';
-    
-    ctx.font = 'bold 130px Arial';
-    ctx.fillText("CHÚC MỪNG", 1000, 300);
-    
-    ctx.font = 'bold 110px Arial';
-    ctx.fillText("QUỐC TẾ PHỤ NỮ", 1000, 480);
-    
-    ctx.font = 'bold 120px Arial';
-    ctx.fillText("08/03/2026", 1000, 680);
+    ctx.font = 'bold 135px Arial'; ctx.fillText("CHÚC MỪNG", 1000, 300);
+    ctx.font = 'bold 115px Arial'; ctx.fillText("QUỐC TẾ PHỤ NỮ", 1000, 480);
+    ctx.font = 'bold 125px Arial'; ctx.fillText("08/03/2026", 1000, 680);
     
     const data = ctx.getImageData(0, 0, 2000, 1000).data;
     const points = [];
     for(let y=0; y<1000; y+=2) {
         for(let x=0; x<2000; x+=2) {
             if(data[(y * 2000 + x) * 4] > 128) {
-                // Tỉ lệ scale x, y nhỏ lại một chút để chữ không quá bè
-                points.push({ x: (x - 1000) * 0.03, y: (500 - y) * 0.03, z: (Math.random()-0.5)*1 });
+                points.push({ x: (x - 1000) * 0.032, y: (500 - y) * 0.032, z: (Math.random()-0.5)*1 });
             }
         }
     }
@@ -61,14 +53,12 @@ function getPointsFromText() {
 function initPhotoSphere() {
     photoSphere = new THREE.Group();
     const loader = new THREE.TextureLoader();
-    const radius = 20; // Trái đất to hơn
-    const maxAni = renderer.capabilities.getMaxAnisotropy();
-
+    const radius = 20; 
     for(let i=1; i<=totalPhotos; i++) {
         loader.load(`assets/pic${i}.jpg`, (tex) => {
-            tex.anisotropy = maxAni;
+            tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
             tex.colorSpace = THREE.SRGBColorSpace;
-            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(7, 9.5), new THREE.MeshBasicMaterial({ map: tex, side: 2 }));
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(7.5, 10), new THREE.MeshBasicMaterial({ map: tex, side: 2 }));
             const phi = Math.acos(-1 + (2 * i) / totalPhotos);
             const theta = Math.sqrt(totalPhotos * Math.PI) * phi;
             mesh.position.set(radius * Math.cos(theta) * Math.sin(phi), radius * Math.sin(theta) * Math.sin(phi), radius * Math.cos(phi));
@@ -101,7 +91,7 @@ function startAnimation() {
         particles.geometry.attributes.position.needsUpdate = true;
     }}, "+=2");
     tl.to(particles.material, { opacity: 0.5, duration: 2 });
-    tl.to(photoSphere.scale, { x: 1, y: 1, z: 1, duration: 2.5, ease: "back.out(1.1)" }, "-=1");
+    tl.to(photoSphere.scale, { x: 1, y: 1, z: 1, duration: 2.5, ease: "back.out(1.1)" }, "-=1.5");
     tl.to(photoSphere.children.map(m => m.position), {
         x: (i, t) => t.x * 4.5, y: (i, t) => t.y * 4.5, z: (i, t) => t.z * 4.5,
         duration: 8, stagger: 0.005, ease: "power2.inOut", onComplete: startHighlightLoop
@@ -118,7 +108,6 @@ function startHighlightLoop() {
         const oldRot = photo.rotation.clone();
         const htl = gsap.timeline({ onComplete: () => gsap.delayedCall(0.5, highlight) });
         const isMobile = window.innerWidth < 768;
-        // Phóng to ảnh highlight to hơn trên mobile
         htl.to(photo.position, { x: 0, y: 0, z: isMobile ? 42 : 45, duration: 1.8, ease: "expo.out" });
         htl.to(photo.rotation, { x: 0, y: 0, z: 0, duration: 1.5 }, "-=1.8");
         htl.to(photo.scale, { x: isMobile ? 4.5 : 6, y: isMobile ? 4.5 : 6, duration: 1.8 }, "-=1.8");
@@ -130,9 +119,11 @@ function startHighlightLoop() {
     highlight();
 }
 
+// XỬ LÝ ÂM THANH & HOLD LOGO
 const music = document.getElementById('bg-music');
 const btn = document.getElementById('hold-button');
-let hold;
+const circle = document.getElementById('progress-circle');
+let holdTl;
 
 const primeAudio = () => {
     music.play().then(() => { music.pause(); }).catch(e => console.log(e));
@@ -140,14 +131,16 @@ const primeAudio = () => {
 
 const handleStart = (e) => {
     if(e.type === 'touchstart') primeAudio();
-    hold = gsap.to("#progress-bar", { width: "100%", duration: 3, ease: "none", onComplete: () => {
+    circle.style.strokeDashoffset = "377";
+    holdTl = gsap.to(circle, { strokeDashoffset: 0, duration: 3, ease: "none", onComplete: () => {
         document.getElementById('start-screen').style.display = 'none';
         music.play();
         startAnimation();
     }});
+    gsap.to(btn, { scale: 0.9, duration: 0.3 });
 };
 
-const handleEnd = () => { if(hold) hold.kill(); gsap.to("#progress-bar", { width: 0 }); };
+const handleEnd = () => { if(holdTl) holdTl.kill(); gsap.to(circle, { strokeDashoffset: 377, duration: 0.3 }); gsap.to(btn, { scale: 1, duration: 0.3 }); };
 
 btn.addEventListener('mousedown', handleStart);
 btn.addEventListener('touchstart', handleStart, { passive: false });
@@ -158,12 +151,13 @@ function updateCamera() {
     const isMobile = window.innerWidth < 768;
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-    // Đẩy camera ra xa hơn trên di động để thấy hết 3 hàng chữ
-    camera.position.z = isMobile ? 75 : 60; 
+    camera.position.z = isMobile ? 80 : 65; 
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
-
 window.addEventListener('resize', updateCamera);
+
+initParticles(); initPhotoSphere(); updateCamera();
+animate();
 
 function animate() {
     requestAnimationFrame(animate);
@@ -171,10 +165,6 @@ function animate() {
     if(photoSphere) photoSphere.rotation.y += 0.0012;
     renderer.render(scene, camera);
 }
-
-initParticles(); initPhotoSphere();
-updateCamera(); // Gọi lần đầu để set vị trí camera chuẩn
-animate();
 
 document.getElementById('letter-icon').onclick = () => {
     document.getElementById('letter-content').classList.remove('hidden');

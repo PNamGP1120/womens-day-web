@@ -11,8 +11,13 @@
     <audio id="bg-music" src="assets/music.mp3" loop preload="auto" playsinline></audio>
 
     <div id="start-screen">
-        <div id="hold-button">Giữ 3 giây để bắt đầu</div>
-        <div id="progress-bar"></div>
+        <div id="hold-button-container">
+            <div id="hold-button"></div>
+            <svg id="progress-ring" width="140" height="140">
+                <circle id="progress-circle" stroke="#81C784" stroke-width="6" fill="transparent" r="60" cx="70" cy="70"/>
+            </svg>
+        </div>
+        <!-- <p id="hold-hint">Giữ Logo 3 giây để bắt đầu</p> -->
     </div>
 
     <div id="letter-icon" class="hidden"></div>
