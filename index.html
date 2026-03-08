@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
 </head>
 <body>
-    <audio id="bg-music" src="assets/music.mp3" loop></audio>
+    <audio id="bg-music" src="assets/music.mp3" loop preload="auto"></audio>
 
     <div id="start-screen">
         <div id="hold-button">Giữ 3 giây để bắt đầu</div>
@@ -22,18 +22,25 @@
             <button id="close-letter">×</button>
             <div class="letter-header">OU Green Plus 🌿</div>
             <div class="letter-body">
-                <p>Chào những "Chiến binh Xanh" của ĐH Mở TP.HCM!</p>
-                <p>Có những yêu thương không cần nói thành lời nhưng luôn hiện diện trong từng khoảnh khắc đời thường. Người phụ nữ với sự kiên cường và trái tim ấm áp đã làm cho cuộc sống trở nên trọn vẹn hơn.</p>
-                <p>Nhân ngày 08/03, CLB xin gửi lời tri ân sâu sắc nhất đến Quý cô, các bạn sinh viên nữ và đặc biệt là Mẹ - bến đỗ bình yên nhất trên hành trình trưởng thành.</p>
+                <p>Chào những "Chiến binh Xanh"!</p>
+                <p>Có những yêu thương lặng thầm vun đắp, và người phụ nữ chính là nguồn sức mạnh dịu dàng nhất. Cảm ơn các cô, các chị và các bạn đã đồng hành cùng hành trình xanh của chúng mình.</p>
+                <p>Chúc phái nữ của Đại học Mở TP.HCM luôn rạng rỡ, hạnh phúc và trọn vẹn yêu thương!</p>
             </div>
-            <div class="letter-footer">#OUGreenPlus #Environment #08032026</div>
+            <div class="letter-footer">#OUGreenPlus #NgayQuocTePhuNu #8/3</div>
         </div>
     </div>
 
     <canvas id="canvas3d"></canvas>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+    <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
